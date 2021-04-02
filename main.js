@@ -96,7 +96,10 @@ async function swap(i, j, isDelayed = 1) {
 
 function drawArr() {
   clearAll();
-  list.forEach(drawLine);
+  //list.forEach(drawLine);
+  for (var i = 0; i <= arrLen; i++) {
+    drawLine(list[i], i);
+  }
 }
 
 function drawLine(length, index, color = "black") {
@@ -148,6 +151,89 @@ function sleep() {
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
+function mergeSort() {
+  sort(list, 0, arrLen - 1);
+}
+
+async function merge(arr, l, m, r) {
+  // Find sizes of two subarrays to be merged
+  var n1 = m - l + 1;
+  var n2 = r - m;
+
+  /* Create temp arrays */
+  var L = [];
+  var R = [];
+
+  /*Copy data to temp arrays*/
+  for (var i = 0; i < n1; ++i) L.push(arr[l + i]);
+  for (var j = 0; j < n2; ++j) R.push(arr[m + 1 + j]);
+
+  /* Merge the temp arrays */
+
+  // Initial indexes of first and second subarrays
+  var i = 0;
+  var j = 0;
+
+  // Initial index of merged subarry array
+  var k = l;
+  while (i < n1 && j < n2) {
+    if (L[i] <= R[j]) {
+      arr[k] = L[i];
+      i++;
+      drawLine(arr[k], k, "red");
+      await sleep();
+      drawArr();
+    } else {
+      arr[k] = R[j];
+      j++;
+      drawLine(arr[k], k, "red");
+      await sleep();
+      drawArr();
+    }
+    k++;
+  }
+
+  /* Copy remaining elements of L[] if any */
+  while (i < n1) {
+    arr[k] = L[i];
+    i++;
+
+    drawLine(arr[k], k, "red");
+    await sleep();
+    drawArr();
+    k++;
+  }
+
+  /* Copy remaining elements of R[] if any */
+  while (j < n2) {
+    arr[k] = R[j];
+    j++;
+
+    drawLine(arr[k], k, "red");
+    await sleep();
+    drawArr();
+    k++;
+  }
+}
+
+async function sort(arr, l, r) {
+  if (l < r) {
+    // Find the middle point
+    var m = Math.floor(l + (r - l) / 2);
+
+    // Sort first and second halves
+    await sort(arr, l, m);
+
+    await sort(arr, m + 1, r);
+    drawArr();
+    await sleep();
+
+    // Merge the sorted halves
+    await merge(arr, l, m, r);
+  }
+}
+
+// Reference:https://www.geeksforgeeks.org/quick-sort/
 async function partition(low, high) {
   // pivot
   var pivot = list[high];
@@ -180,13 +266,12 @@ async function partition(low, high) {
 }
 
 /* The main function that implements QuickSort
-          arr[] --> Array to be sorted,
           low --> Starting index,
           high --> Ending index
  */
 async function quickSort(low = 0, high = arrLen - 1) {
   if (low < high) {
-    // pi is partitioning index, arr[p]
+    // pi is partitioning index, list
     // is now at right place
     var pi = await partition(low, high);
 
@@ -199,7 +284,7 @@ async function quickSort(low = 0, high = arrLen - 1) {
 
 async function quickSortSynced(low = 0, high = arrLen - 1) {
   if (low < high) {
-    // pi is partitioning index, arr[p]
+    // pi is partitioning index, list
     // is now at right place
     var pi = await partition(low, high);
 
