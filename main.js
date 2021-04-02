@@ -17,15 +17,24 @@ ctx.lineWidth = lineWidth;
 
 init();
 
-var slider = document.getElementById("arrLen");
-var output = document.getElementById("nr");
-output.innerHTML = slider.value;
+var Nslider = document.getElementById("arrLen");
+var Noutput = document.getElementById("lenNr");
+Noutput.innerHTML = Nslider.value;
 
-slider.oninput = function () {
+Nslider.oninput = function () {
   arrLen = this.value;
-  output.innerHTML = this.value;
+  Noutput.innerHTML = this.value;
 
   reset();
+};
+
+var Dslider = document.getElementById("delay");
+var Doutput = document.getElementById("delayNr");
+Doutput.innerHTML = Dslider.value + " ms";
+
+Dslider.oninput = function () {
+  delay = this.value;
+  Doutput.innerHTML = this.value + " ms";
 };
 
 function init() {
@@ -139,9 +148,9 @@ function sleep() {
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
-async function partition(arr, low, high) {
+async function partition(low, high) {
   // pivot
-  var pivot = arr[high];
+  var pivot = list[high];
 
   // Index of smaller element and
   // indicates the right position
@@ -151,21 +160,22 @@ async function partition(arr, low, high) {
   for (var j = low; j <= high - 1; j++) {
     // If current element is smaller
     // than the pivot
-    if (arr[j] < pivot) {
+    if (list[j] < pivot) {
       // Increment index of
       // smaller element
       i++;
-      swap(arr, i, j);
+      swap(i, j);
       await sleep();
-      drawLine(arr[i], i);
-      drawLine(arr[j], j);
+      drawLine(list[i], i);
+      drawLine(list[j], j);
     }
   }
 
-  swap(arr, i + 1, high);
+  swap(i + 1, high);
   await sleep();
-  drawLine(arr[i], i);
-  drawLine(arr[high], high);
+  drawLine(list[i + 1], i + 1);
+  drawLine(list[high], high);
+
   return i + 1;
 }
 
@@ -174,15 +184,28 @@ async function partition(arr, low, high) {
           low --> Starting index,
           high --> Ending index
  */
-function quickSort(arr, low = 0, high = arrLen - 1) {
+async function quickSort(low = 0, high = arrLen - 1) {
   if (low < high) {
     // pi is partitioning index, arr[p]
     // is now at right place
-    var pi = partition(arr, low, high);
+    var pi = await partition(low, high);
 
     // Separately sort elements before
     // partition and after partition
-    quickSort(arr, low, pi - 1);
-    quickSort(arr, pi + 1, high);
+    quickSort(low, pi - 1);
+    quickSort(pi + 1, high);
+  }
+}
+
+async function quickSortSynced(low = 0, high = arrLen - 1) {
+  if (low < high) {
+    // pi is partitioning index, arr[p]
+    // is now at right place
+    var pi = await partition(low, high);
+
+    // Separately sort elements before
+    // partition and after partition
+    await quickSort(low, pi - 1);
+    await quickSort(pi + 1, high);
   }
 }

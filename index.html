@@ -8,10 +8,17 @@
     <body style="height:100%; width:100%; display:flex;justify-content: center; align-items:center;flex-direction:column;">
 		<canvas id="myCanvas" style="border: black solid;display:block;"></canvas>
 		<div style="display: flex;">
-			<div style="flex: 1;">
+			<div style="flex: 1;justify-content: center; align-items:center;">
+				<div>
 				<label>Numarul de elemente</label>
-				<input type="range" min="10" max="500" value="50" id="arrLen">
-				<label id="nr"></label>
+				<input type="range" min="10" max="1000" value="50" id="arrLen">
+				<label id="lenNr"></label>
+			</div>
+			<div>
+				<label>Delay</label>
+				<input type="range" min="1" max="2000" value="50" id="delay">
+				<label id="delayNr">50 ms</label>
+			</div>
 			</div>
 			<div style="display: flex; flex: 1;">
 				<button id="reset" onclick="reset()">
@@ -23,6 +30,9 @@
 				</button>
 				<button onclick="quickSort()">
 					<p style="margin-top:0.7vh">QuickSort</p>
+				</button>
+				<button onclick="quickSortSynced()">
+					<p style="margin-top:0.7vh">QuickSort (Synchronous)</p>
 				</button>
 			</div>
 		</div>
