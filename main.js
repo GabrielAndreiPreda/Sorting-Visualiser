@@ -1,26 +1,47 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-const len = 100;
+var arrLen = 100;
 
 canvas.height = Math.floor(window.innerHeight * 0.3);
-canvas.width = Math.floor(window.innerWidth / len) * len;
+canvas.width = Math.floor((window.innerWidth / arrLen) * 0.95) * arrLen;
 
 console.log(canvas.width);
 
-const list = [];
-var delay = 1;
+var list = [];
+var delay = 100;
 
-const lenRatio = canvas.height / len;
-const lineWidth = canvas.width / len;
+var lenRatio = canvas.height / arrLen;
+var lineWidth = canvas.width / arrLen;
 ctx.lineWidth = lineWidth;
 
 init();
+
+var Nslider = document.getElementById("arrLen");
+var Noutput = document.getElementById("lenNr");
+Noutput.innerHTML = Nslider.value;
+
+Nslider.oninput = function () {
+  arrLen = this.value;
+  Noutput.innerHTML = this.value;
+
+  reset();
+};
+
+var Dslider = document.getElementById("delay");
+var Doutput = document.getElementById("delayNr");
+Doutput.innerHTML = Dslider.value + " ms";
+
+Dslider.oninput = function () {
+  delay = this.value;
+  Doutput.innerHTML = this.value + " ms";
+};
+
 function init() {
-  initArr(list);
-  scrambleArr(list);
-  drawArr(list);
-  debug(list);
+  initArr();
+  scrambleArr();
+  drawArr();
+  debug();
 }
 
 function clearAll() {
@@ -33,41 +54,52 @@ function clearLine(index) {
 
 function reset() {
   clearAll();
+  canvas.height = Math.floor(window.innerHeight * 0.3);
+  canvas.width = Math.floor((window.innerWidth / arrLen) * 0.95) * arrLen;
+  lenRatio = canvas.height / arrLen;
+  lineWidth = canvas.width / arrLen;
+  ctx.lineWidth = lineWidth;
+
   while (list.length) {
     list.pop();
   }
   init();
 }
 
-function initArr(array = list) {
-  for (i = 0; i < len; i++) {
-    array.push(i + 1);
+function initArr() {
+  for (i = 0; i < arrLen; i++) {
+    list.push(i + 1);
   }
 }
 
-function scrambleArr(array = list) {
+function scrambleArr() {
   var tempIndex;
-  for (i = 0; i < array.length; i++) {
-    tempIndex = getRndInteger(0, array.length);
-    swap(array, i, tempIndex, 0);
+  for (i = 0; i < list.length; i++) {
+    tempIndex = getRndInteger(0, list.length);
+    swap(i, tempIndex, 0);
   }
 }
 
-async function swap(array, i, j, isDelayed = 1) {
-  aux = array[i];
-  array[i] = array[j];
-  array[j] = aux;
+async function swap(i, j, isDelayed = 1) {
+  aux = list[i];
+  list[i] = list[j];
+  list[j] = aux;
   clearLine(i);
   clearLine(j);
+
   if (delay >= 100 && isDelayed) {
-    drawLine(array[i], i, "blue");
-    drawLine(array[j], j, "blue");
+    drawLine(list[i], i, "blue");
+    drawLine(list[j], j, "blue");
     await sleep();
   }
 }
 
-function drawArr(array = list) {
-  array.forEach(drawLine);
+function drawArr() {
+  clearAll();
+  //list.forEach(drawLine);
+  for (var i = 0; i <= arrLen; i++) {
+    drawLine(list[i], i);
+  }
 }
 
 function drawLine(length, index, color = "black") {
@@ -90,28 +122,28 @@ function drawLine(length, index, color = "black") {
   );
 }
 
-function debug(array = list) {
-  console.log(array);
+function debug() {
+  console.log(list);
 }
 
 function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-async function bubbleSort(array = list) {
-  var n = array.length;
+async function bubbleSort() {
+  var n = list.length;
   for (i = 0; i < n - 1; i++)
     for (j = 0; j < n - i - 1; j++) {
-      drawLine(array[j], j, "red");
-      drawLine(array[j + 1], j + 1, "red");
+      drawLine(list[j], j, "red");
+      drawLine(list[j + 1], j + 1, "red");
       await sleep();
 
-      if (array[j] > array[j + 1]) {
-        swap(array, j, j + 1);
+      if (list[j] > list[j + 1]) {
+        swap(j, j + 1);
       }
       await sleep();
-      drawLine(array[j], j);
-      drawLine(array[j + 1], j + 1);
+      drawLine(list[j], j);
+      drawLine(list[j + 1], j + 1);
     }
 }
 
@@ -119,9 +151,92 @@ function sleep() {
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
-async function partition(arr, low, high) {
+function mergeSort() {
+  sort(list, 0, arrLen - 1);
+}
+
+async function merge(arr, l, m, r) {
+  // Find sizes of two subarrays to be merged
+  var n1 = m - l + 1;
+  var n2 = r - m;
+
+  /* Create temp arrays */
+  var L = [];
+  var R = [];
+
+  /*Copy data to temp arrays*/
+  for (var i = 0; i < n1; ++i) L.push(arr[l + i]);
+  for (var j = 0; j < n2; ++j) R.push(arr[m + 1 + j]);
+
+  /* Merge the temp arrays */
+
+  // Initial indexes of first and second subarrays
+  var i = 0;
+  var j = 0;
+
+  // Initial index of merged subarry array
+  var k = l;
+  while (i < n1 && j < n2) {
+    if (L[i] <= R[j]) {
+      arr[k] = L[i];
+      i++;
+      drawLine(arr[k], k, "red");
+      await sleep();
+      drawArr();
+    } else {
+      arr[k] = R[j];
+      j++;
+      drawLine(arr[k], k, "red");
+      await sleep();
+      drawArr();
+    }
+    k++;
+  }
+
+  /* Copy remaining elements of L[] if any */
+  while (i < n1) {
+    arr[k] = L[i];
+    i++;
+
+    drawLine(arr[k], k, "red");
+    await sleep();
+    drawArr();
+    k++;
+  }
+
+  /* Copy remaining elements of R[] if any */
+  while (j < n2) {
+    arr[k] = R[j];
+    j++;
+
+    drawLine(arr[k], k, "red");
+    await sleep();
+    drawArr();
+    k++;
+  }
+}
+
+async function sort(arr, l, r) {
+  if (l < r) {
+    // Find the middle point
+    var m = Math.floor(l + (r - l) / 2);
+
+    // Sort first and second halves
+    await sort(arr, l, m);
+
+    await sort(arr, m + 1, r);
+    drawArr();
+    await sleep();
+
+    // Merge the sorted halves
+    await merge(arr, l, m, r);
+  }
+}
+
+// Reference:https://www.geeksforgeeks.org/quick-sort/
+async function partition(low, high) {
   // pivot
-  var pivot = arr[high];
+  var pivot = list[high];
 
   // Index of smaller element and
   // indicates the right position
@@ -131,38 +246,51 @@ async function partition(arr, low, high) {
   for (var j = low; j <= high - 1; j++) {
     // If current element is smaller
     // than the pivot
-    if (arr[j] < pivot) {
+    if (list[j] < pivot) {
       // Increment index of
       // smaller element
       i++;
-      swap(arr, i, j);
+      swap(i, j);
       await sleep();
-      drawLine(arr[i], i);
-      drawLine(arr[j], j);
+      drawLine(list[i], i);
+      drawLine(list[j], j);
     }
   }
 
-  swap(arr, i + 1, high);
+  swap(i + 1, high);
   await sleep();
-  drawLine(arr[i], i);
-  drawLine(arr[high], high);
+  drawLine(list[i + 1], i + 1);
+  drawLine(list[high], high);
+
   return i + 1;
 }
 
 /* The main function that implements QuickSort
-          arr[] --> Array to be sorted,
           low --> Starting index,
           high --> Ending index
  */
-function quickSort(arr = list, low = 0, high = len - 1) {
+async function quickSort(low = 0, high = arrLen - 1) {
   if (low < high) {
-    // pi is partitioning index, arr[p]
+    // pi is partitioning index, list
     // is now at right place
-    var pi = partition(arr, low, high);
+    var pi = await partition(low, high);
 
     // Separately sort elements before
     // partition and after partition
-    quickSort(arr, low, pi - 1);
-    quickSort(arr, pi + 1, high);
+    quickSort(low, pi - 1);
+    quickSort(pi + 1, high);
+  }
+}
+
+async function quickSortSynced(low = 0, high = arrLen - 1) {
+  if (low < high) {
+    // pi is partitioning index, list
+    // is now at right place
+    var pi = await partition(low, high);
+
+    // Separately sort elements before
+    // partition and after partition
+    await quickSort(low, pi - 1);
+    await quickSort(pi + 1, high);
   }
 }
