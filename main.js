@@ -1,7 +1,10 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-var arrLen = 100;
+// create web audio api context
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+var arrLen = 50;
 
 canvas.height = Math.floor(window.innerHeight * 0.3);
 canvas.width = Math.floor((window.innerWidth / arrLen) * 0.95) * arrLen;
@@ -10,32 +13,45 @@ console.log(canvas.width);
 
 var list = [];
 var delay = 100;
+var muted = 0;
 
 var lenRatio = canvas.height / arrLen;
 var lineWidth = canvas.width / arrLen;
 ctx.lineWidth = lineWidth;
 
-init();
+var nSlider = document.getElementById("arrLen");
+var nOutput = document.getElementById("lenNr");
+nSlider.value = arrLen;
+nOutput.innerHTML = nSlider.value;
 
-var Nslider = document.getElementById("arrLen");
-var Noutput = document.getElementById("lenNr");
-Noutput.innerHTML = Nslider.value;
-
-Nslider.oninput = function () {
+nSlider.oninput = function () {
   arrLen = this.value;
-  Noutput.innerHTML = this.value;
+  nOutput.innerHTML = this.value;
 
   reset();
 };
 
-var Dslider = document.getElementById("delay");
-var Doutput = document.getElementById("delayNr");
-Doutput.innerHTML = Dslider.value + " ms";
+var dSlider = document.getElementById("delay");
+var dOutput = document.getElementById("delayNr");
+dSlider.value = delay;
+dOutput.innerHTML = dSlider.value + " ms";
 
-Dslider.oninput = function () {
+dSlider.oninput = function () {
   delay = this.value;
-  Doutput.innerHTML = this.value + " ms";
+  dOutput.innerHTML = this.value + " ms";
 };
+
+document
+  .getElementById("arrLen")
+  .setAttribute("max", Math.floor(window.innerWidth * 0.9));
+
+var htmlList = document.getElementById("array");
+
+setInterval(() => {
+  htmlList.innerHTML = list;
+}, 1);
+
+init();
 
 function init() {
   initArr();
@@ -70,6 +86,10 @@ function initArr() {
   for (i = 0; i < arrLen; i++) {
     list.push(i + 1);
   }
+  if (arrLen <= 50) htmlList.style.display = "block";
+  else {
+    htmlList.style.display = "none";
+  }
 }
 
 function scrambleArr() {
@@ -98,11 +118,11 @@ function drawArr() {
   clearAll();
   //list.forEach(drawLine);
   for (var i = 0; i <= arrLen; i++) {
-    drawLine(list[i], i);
+    drawLine(list[i], i, "black", 0);
   }
 }
 
-function drawLine(length, index, color = "black") {
+function drawLine(length, index, color = "black", sound = 1) {
   /* ctx.strokeStyle = color; 
   ctx.beginPath();
   ctx.moveTo(index * lineWidth + lineWidth / 2, canvas.height);
@@ -120,6 +140,14 @@ function drawLine(length, index, color = "black") {
     lineWidth,
     canvas.height
   );
+  playSoundForLength(length, sound);
+}
+
+function playSoundForLength(length, sound) {
+  if (!muted)
+    if (Number.isFinite(length) && sound) {
+      playNote(length, delay / 2);
+    }
 }
 
 function debug() {
@@ -292,5 +320,36 @@ async function quickSortSynced(low = 0, high = arrLen - 1) {
     // partition and after partition
     await quickSort(low, pi - 1);
     await quickSort(pi + 1, high);
+  }
+}
+
+function playNote(frequency, duration) {
+  // create Oscillator node
+  var oscillator = audioCtx.createOscillator();
+
+  oscillator.type = "square";
+  oscillator.frequency.value = Math.round(
+    normalizeFrequencyForArrLen(frequency) * 1000
+  ); // value in hertz
+  oscillator.connect(audioCtx.destination);
+  oscillator.start();
+
+  setTimeout(function () {
+    oscillator.stop();
+  }, duration);
+}
+
+function normalizeFrequencyForArrLen(frequency) {
+  return (frequency - 1) / (arrLen - 1);
+}
+
+muteButton = document.getElementById("muteButton");
+function toggleMute() {
+  if (muted == 0) {
+    muteButton.style.backgroundImage = "url(./Assets/unmute.png)";
+    muted = 1;
+  } else if (muted == 1) {
+    muteButton.style.backgroundImage = "url(./Assets/Mute.svg)";
+    muted = 0;
   }
 }
